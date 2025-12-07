@@ -38,7 +38,7 @@ export default function Dashboard() {
                 .from("transactions")
                 .select("*")
                 .gte("created_at", today.toISOString())
-                .eq("status", "approved");
+                .eq("status", "succeeded")
 
             const totalHoy = trx?.reduce((acc, t) => acc + Number(t.amount), 0) || 0;
 

@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
@@ -11,7 +12,9 @@ export default function Configuracion() {
     const [settings, setSettings] = useState(null);
     const router = useRouter();
 
-    // Fetch settings
+    // ================================
+    // Obtener configuración
+    // ================================
     const fetchSettings = async () => {
         const { data, error } = await supabase
             .from("settings")
@@ -20,28 +23,48 @@ export default function Configuracion() {
             .maybeSingle();
 
         if (error) {
-            console.error(error);
             toast.error("Error cargando configuración");
             return;
         }
 
         if (!data) {
             setSettings("no-config");
-            return;
+        } else {
+            setSettings(data);
         }
-
-        setSettings(data);
-    };
-
-    const goBack = () => {
-        router.back();
     };
 
     useEffect(() => {
         fetchSettings();
     }, []);
 
-    // Guardar cambios
+    const goBack = () => router.back();
+
+    // ================================
+    // Crear configuración si no existe
+    // ================================
+    const createDefault = async () => {
+        const { error } = await supabase.from("settings").insert([
+            {
+                id: 1,
+                stripe_mode: "test",
+                stripe_pk: "",
+                stripe_sk: "",
+                receiver_account: "",
+            },
+        ]);
+
+        if (error) {
+            toast.error("Error creando configuración");
+        } else {
+            toast.success("Configuración creada");
+            fetchSettings();
+        }
+    };
+
+    // ================================
+    // Guardar configuración
+    // ================================
     const save = async () => {
         if (!settings || settings === "no-config") return;
 
@@ -50,6 +73,7 @@ export default function Configuracion() {
             stripe_pk: settings.stripe_pk || "",
             stripe_sk: settings.stripe_sk || "",
             receiver_account: settings.receiver_account || "",
+            updated_at: new Date(),
         };
 
         const { error } = await supabase
@@ -58,69 +82,62 @@ export default function Configuracion() {
             .eq("id", 1);
 
         if (error) {
-            console.error(error);
             toast.error("Error guardando");
         } else {
             toast.success("Guardado correctamente");
-            fetchSettings(); // refrescar valores
+            fetchSettings();
         }
     };
 
+    // ================================
+    // Render loading
+    // ================================
     if (settings === null) return "Cargando...";
 
-    if (settings === "no-config")
+    // ================================
+    // Render creación
+    // ================================
+    if (settings === "no-config") {
         return (
             <ProtectedRoute>
                 <Navbar />
+
                 <div className="p-6 max-w-xl mx-auto">
                     <button
                         onClick={goBack}
-                        className="mb-6 flex items-center text-gray-700 hover:text-black transition cursor-pointer"
+                        className="mb-6 flex items-center text-gray-700 hover:text-black cursor-pointer"
                     >
-                        <BiChevronLeft className="w-6 h-6" />
-                        <span>Volver</span>
+                        <BiChevronLeft className="w-6 h-6" /> Volver
                     </button>
 
                     <h1 className="text-3xl font-bold mb-4">Configuración</h1>
+
                     <p className="text-red-500 font-semibold mb-4">
                         No existe configuración en la base de datos.
                     </p>
 
                     <button
-                        className="mt-4 w-full py-3 bg-green-600 text-white rounded-xl cursor-pointer hover:bg-green-700 transition"
-                        onClick={async () => {
-                            const { error } = await supabase
-                                .from("settings")
-                                .insert([
-                                    {
-                                        id: 1,
-                                        stripe_mode: "test",
-                                        stripe_pk: "",
-                                        stripe_sk: "",
-                                        receiver_account: "",
-                                    },
-                                ]);
-
-                            if (error) toast.error("Error creando configuración");
-                            else {
-                                toast.success("Configuración creada");
-                                fetchSettings();
-                            }
-                        }}
+                        onClick={createDefault}
+                        className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                     >
                         Crear configuración por defecto
                     </button>
                 </div>
             </ProtectedRoute>
         );
+    }
 
+    // ================================
+    // Render edición
+    // ================================
     return (
         <ProtectedRoute>
             <Navbar />
-            <div className="p-6 container mx-auto">
+
+            <div className="p-6 max-w-xl mx-auto">
                 <button
                     onClick={goBack}
-                    className="mb-6 flex items-center text-gray-700 hover:text-black"
+                    className="mb-6 flex items-center text-gray-700 hover:text-black cursor-pointer"
                 >
                     <BiChevronLeft className="w-6 h-6" /> Volver
                 </button>
@@ -128,7 +145,7 @@ export default function Configuracion() {
                 <h1 className="text-3xl font-bold mb-6">Configuración</h1>
 
                 <div className="space-y-4">
-                    {/* Mode */}
+                    {/* Modo */}
                     <select
                         value={settings.stripe_mode}
                         onChange={(e) =>
@@ -160,7 +177,7 @@ export default function Configuracion() {
                         className="w-full border p-3 rounded"
                     />
 
-                    {/* Receiver */}
+                    {/* Receiver Account */}
                     <input
                         value={settings.receiver_account || ""}
                         onChange={(e) =>
@@ -173,10 +190,10 @@ export default function Configuracion() {
                         className="w-full border p-3 rounded"
                     />
 
-                    {/* Save */}
+                    {/* Botón Guardar */}
                     <button
                         onClick={save}
-                        className="w-full py-3 bg-blue-600 text-white rounded-xl cursor-pointer hover:bg-blue-700 transition"
+                        className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
                     >
                         Guardar
                     </button>

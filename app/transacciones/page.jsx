@@ -8,11 +8,7 @@ import { supabase } from "@/lib/supabase";
 import toast from "react-hot-toast";
 import { BiChevronLeft } from "react-icons/bi";
 import { useRouter } from "next/navigation";
-
-// XLSX
 import * as XLSX from "xlsx";
-
-// React Calendar
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
@@ -22,9 +18,7 @@ export default function Transacciones() {
     const [pdfMake, setPdfMake] = useState(null);
     const router = useRouter();
 
-    // ==========================================================
-    // CARGAR PDFMAKE DINÁMICAMENTE (compatible con Next.js)
-    // ==========================================================
+    // Cargar PDFMake dinámicamente
     useEffect(() => {
         const loadPdfmake = async () => {
             try {
@@ -35,9 +29,7 @@ export default function Transacciones() {
                 const pdfFonts = pdfFontsModule.default || pdfFontsModule;
 
                 pdf.vfs =
-                    pdfFonts.pdfMake?.vfs ||
-                    pdfFonts.vfs ||
-                    pdfFonts.pdfmake?.vfs;
+                    pdfFonts.pdfMake?.vfs || pdfFonts.vfs || pdfFonts.pdfmake?.vfs;
 
                 setPdfMake(pdf);
             } catch (err) {
@@ -49,13 +41,8 @@ export default function Transacciones() {
         loadPdfmake();
     }, []);
 
-    // ==========================================================
-    // CARGAR TRANSACCIONES
-    // ==========================================================
     const fetchData = async () => {
-        let query = supabase
-            .from("transactions")
-            .select("*, users(full_name)");
+        let query = supabase.from("transactions").select("*, users(full_name)");
 
         if (date) {
             const iso = new Date(date).toISOString().split("T")[0];
@@ -76,9 +63,7 @@ export default function Transacciones() {
         fetchData();
     }, [date]);
 
-    // ==========================================================
-    // EXPORTAR CSV
-    // ==========================================================
+    // Exportar CSV
     const exportCSV = () => {
         const rows = list.map((t) => ({
             fecha: t.created_at,
@@ -100,9 +85,7 @@ export default function Transacciones() {
         link.click();
     };
 
-    // ==========================================================
-    // EXPORTAR XLSX
-    // ==========================================================
+    // Exportar XLSX
     const exportXLSX = () => {
         const rows = list.map((t) => ({
             Fecha: t.created_at,
@@ -114,14 +97,12 @@ export default function Transacciones() {
 
         const ws = XLSX.utils.json_to_sheet(rows);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Transacciones");
 
+        XLSX.utils.book_append_sheet(wb, ws, "Transacciones");
         XLSX.writeFile(wb, "transacciones.xlsx");
     };
 
-    // ==========================================================
-    // EXPORTAR PDF
-    // ==========================================================
+    // Exportar PDF
     const exportPDF = () => {
         if (!pdfMake) return toast.error("Cargando PDF...");
 
@@ -150,29 +131,21 @@ export default function Transacciones() {
                 },
             ],
             styles: {
-                header: {
-                    fontSize: 18,
-                    bold: true,
-                    margin: [0, 0, 0, 12],
-                },
+                header: { fontSize: 18, bold: true, margin: [0, 0, 0, 12] },
             },
         };
 
         pdfMake.createPdf(doc).download("transacciones.pdf");
     };
 
-    const goBack = () => {
-        router.back();
-    };
+    const goBack = () => router.back();
 
-    // ==========================================================
-    // RENDER
-    // ==========================================================
     return (
         <ProtectedRoute>
             <Navbar />
 
             <div className="container mx-auto p-6">
+                {/* Volver */}
                 <button
                     onClick={goBack}
                     className="mb-6 flex items-center text-gray-700 hover:text-black transition cursor-pointer"
@@ -181,68 +154,78 @@ export default function Transacciones() {
                     <span>Volver</span>
                 </button>
 
-                <h1 className="text-3xl font-bold mb-6">Historial de Transacciones</h1>
+                <h1 className="text-3xl font-bold mb-8">Historial de Transacciones</h1>
 
-                {/* CALENDARIO */}
-                <div className="bg-white rounded-xl shadow p-4 inline-block mb-6">
-                    <p className="font-semibold mb-2">Filtrar por fecha:</p>
-                    <Calendar
-                        onChange={setDate}
-                        value={date}
-                        className="rounded-lg"
-                    />
-                </div>
+                {/* GRID PRINCIPAL */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                {/* BOTONES */}
-                <div className="flex gap-3 mb-6">
-                    <button
-                        onClick={exportCSV}
-                        className="px-4 py-2 bg-gray-700 text-white rounded"
-                    >
-                        CSV
-                    </button>
+                    {/* IZQUIERDA — TABLA Y BOTONES */}
+                    <div className="lg:col-span-2 space-y-6">
 
-                    <button
-                        onClick={exportXLSX}
-                        className="px-4 py-2 bg-blue-600 text-white rounded"
-                    >
-                        XLSX
-                    </button>
-
-                    <button
-                        onClick={exportPDF}
-                        className="px-4 py-2 bg-red-600 text-white rounded"
-                    >
-                        PDF
-                    </button>
-                </div>
-
-                {/* TABLA */}
-                <Table
-                    columns={[
-                        "Fecha",
-                        "Monto",
-                        "Estado",
-                        "Tarjeta",
-                        "Operador",
-                        "Comprobante",
-                    ]}
-                    data={list.map((t) => ({
-                        fecha: new Date(t.created_at).toLocaleString(),
-                        monto: `S/ ${t.amount}`,
-                        estado: t.status,
-                        tarjeta: `**** ${t.card_last4}`,
-                        operador: t.users?.full_name || "—",
-                        comprobante: (
-                            <a
-                                href={`/comprobante/${t.id}`}
-                                className="text-blue-600 underline"
+                        {/* BOTONES */}
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                onClick={exportCSV}
+                                className="px-4 py-2 bg-gray-700 text-white rounded shadow cursor-pointer"
                             >
-                                Ver
-                            </a>
-                        ),
-                    }))}
-                />
+                                CSV
+                            </button>
+
+                            <button
+                                onClick={exportXLSX}
+                                className="px-4 py-2 bg-blue-600 text-white rounded shadow cursor-pointer"
+                            >
+                                XLSX
+                            </button>
+
+                            <button
+                                onClick={exportPDF}
+                                className="px-4 py-2 bg-red-600 text-white rounded shadow cursor-pointer"
+                            >
+                                PDF
+                            </button>
+                        </div>
+
+                        {/* TABLA */}
+                        <Table
+                            columns={[
+                                "Fecha",
+                                "Monto",
+                                "Estado",
+                                "Tarjeta",
+                                "Operador",
+                                "Comprobante",
+                            ]}
+                            data={list.map((t) => ({
+                                fecha: new Date(t.created_at).toLocaleString(),
+                                monto: `S/ ${t.amount}`,
+                                estado: t.status,
+                                tarjeta: `**** ${t.card_last4}`,
+                                operador: t.users?.full_name || "—",
+                                comprobante: (
+                                    <a
+                                        href={`/comprobante/${t.id}`}
+                                        className="text-blue-600 underline"
+                                    >
+                                        Ver
+                                    </a>
+                                ),
+                            }))}
+                        />
+                    </div>
+
+                    {/* DERECHA — CALENDARIO */}
+                    <div>
+                        <div className="bg-white rounded-xl shadow p-4">
+                            <p className="font-semibold mb-3 text-lg">Filtrar por fecha:</p>
+                            <Calendar
+                                onChange={setDate}
+                                value={date}
+                                className="rounded-lg"
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
         </ProtectedRoute>
     );

@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
-import { supabase } from "@/lib/supabase";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -16,7 +15,6 @@ export default function Ventas() {
         setValue,
         formState: { errors },
     } = useForm();
-
     const router = useRouter();
 
     // Estado para formatear MM/YY
@@ -37,18 +35,9 @@ export default function Ventas() {
 
     const onSubmit = async (values) => {
         try {
+            ("📤 Enviando al backend:", values);   // DEBUG
+
             toast.loading("Procesando pago...");
-
-            const { data: settings } = await supabase
-                .from("settings")
-                .select("*")
-                .eq("id", 1)
-                .single();
-
-            if (!settings?.stripe_sk) {
-                toast.dismiss();
-                return toast.error("Configurar Stripe primero");
-            }
 
             const res = await fetch("/api/payment", {
                 method: "POST",
@@ -56,14 +45,23 @@ export default function Ventas() {
                 body: JSON.stringify(values),
             });
 
+            ("📥 Respuesta cruda:", res);          // DEBUG
+
             const json = await res.json();
+            ("📥 JSON:", json);                    // DEBUG
+
             toast.dismiss();
 
-            if (!res.ok) return toast.error(json.error);
+            if (!res.ok) {
+                console.error("❌ Error desde el server:", json.error);
+                return toast.error(json.error);
+            }
 
             toast.success("Pago aprobado 👍");
+
         } catch (e) {
             toast.dismiss();
+            console.error("🔥 Error en submit:", e);
             toast.error("Error procesando pago");
         }
     };
