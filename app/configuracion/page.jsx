@@ -65,6 +65,7 @@ export default function Configuracion() {
             stripe_pk: settings.stripe_pk || "",
             stripe_sk: settings.stripe_sk || "",
             receiver_account: settings.receiver_account || "",
+            currency: settings.currency,
             updated_at: new Date(),
         };
 
@@ -137,6 +138,17 @@ export default function Configuracion() {
                     >
                         <option value="test">Modo Test</option>
                         <option value="live">Modo Live</option>
+                    </select>
+
+                    <select
+                        value={settings.currency}
+                        onChange={(e) =>
+                            setSettings({ ...settings, currency: e.target.value })
+                        }
+                        className="w-full border p-3 rounded"
+                    >
+                        <option value="usd">USD – Dólares</option>
+                        <option value="pen">PEN – Soles</option>
                     </select>
 
                     <input
