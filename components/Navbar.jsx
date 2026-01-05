@@ -14,7 +14,7 @@ export default function Navbar() {
     return (
         <nav className="bg-white shadow-md px-6 py-4 flex justify-between">
             <div className="container flex justify-between">
-                <h1 className="font-bold text-xl">POS Web</h1>
+                <a href="/dashboard" className="font-bold text-xl">Venero Perú</a>
 
                 <button
                     onClick={logout}
