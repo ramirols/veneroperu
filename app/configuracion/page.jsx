@@ -129,14 +129,14 @@ export default function Configuracion() {
 
                 <div className="space-y-4">
                     <select
-                        value={settings.currency}
+                        value={settings.stripe_mode}
                         onChange={(e) =>
-                            setSettings({ ...settings, currency: e.target.value })
+                            setSettings({ ...settings, stripe_mode: e.target.value })
                         }
                         className="w-full border p-3 rounded"
                     >
-                        <option value="usd">USD – Dólares</option>
-                        <option value="pen">PEN – Soles</option>
+                        <option value="test">Modo Test</option>
+                        <option value="live">Modo Live</option>
                     </select>
 
                     <input
