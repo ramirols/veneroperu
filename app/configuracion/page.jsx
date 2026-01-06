@@ -65,7 +65,6 @@ export default function Configuracion() {
             stripe_pk: settings.stripe_pk || "",
             stripe_sk: settings.stripe_sk || "",
             receiver_account: settings.receiver_account || "",
-            currency: settings.currency,
             updated_at: new Date(),
         };
 
@@ -129,17 +128,6 @@ export default function Configuracion() {
                 <h1 className="text-3xl font-bold mb-6">Configuración</h1>
 
                 <div className="space-y-4">
-                    <select
-                        value={settings.stripe_mode}
-                        onChange={(e) =>
-                            setSettings({ ...settings, stripe_mode: e.target.value })
-                        }
-                        className="w-full border p-3 rounded"
-                    >
-                        <option value="test">Modo Test</option>
-                        <option value="live">Modo Live</option>
-                    </select>
-
                     <select
                         value={settings.currency}
                         onChange={(e) =>
